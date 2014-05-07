@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 
 public class TreeNode {
-	boolean isOrNode;
+	boolean isOrNode = false;
 
 	ArrayList<TreeNode> children = new ArrayList<>();
 	double V;

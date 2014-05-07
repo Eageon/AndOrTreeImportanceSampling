@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 
 public class PseudoTree {
-	TreeNode root;
+	OrNode root;
 	GraphicalModel model;
 	ArrayList<OrNode> orNodes;
 	
@@ -49,6 +49,70 @@ public class PseudoTree {
 					break;
 				}
 			}
+		}
+	}
+	
+	public int treeHeight() {
+		return treeHeight(root);
+	}
+	
+	public int treeHeight(TreeNode node) {
+		if(null == node) {
+			return 0;
+		}
+		
+		int height = 0;
+		for (TreeNode child : node.children) {
+			int tmp = treeHeight(child);
+			if(tmp > height) {
+				height = tmp;
+			}
+		}
+		
+		return height;
+	}
+	
+	public void splitOrNodes() {
+		splitOrNodes(root);
+	}
+	
+	public void splitOrNodes(OrNode orNode) {
+		if(null == orNode) {
+			return;
+		}
+		
+		if (orNode.alreadySplitted) {
+			return;
+		}
+		
+		// backup of Or children
+		ArrayList<TreeNode> orChildren = orNode.children;
+		ArrayList<Variable> varChildren = new ArrayList<>();
+		for (TreeNode treeNode : orChildren) {
+			varChildren.add(((OrNode)treeNode).nodeVariable);
+		}
+		// split to And children
+		orNode.children = new ArrayList<>(orNode.nodeVariable.domainSize());
+		for (int i = 0; i < orNode.nodeVariable.domainSize(); i++) {
+			orChildren.add(new AndNode(i));
+		}
+		
+		for (TreeNode andNode : orNode.children) {
+			splitAndNodes(varChildren, (AndNode)andNode);
+		}
+	}
+	
+	public void splitAndNodes(ArrayList<Variable> vars, AndNode andNode) {
+		for (Variable var : vars) {
+			andNode.addChildren(new OrNode(var));
+		}
+		
+		for (TreeNode orNode : andNode.children) {
+			splitOrNodes((OrNode)orNode);
+		}
+		
+		if (vars.size() == 0) {
+			andNode.V = 1;
 		}
 	}
 }
