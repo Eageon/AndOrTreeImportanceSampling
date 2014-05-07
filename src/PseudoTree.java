@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 
 public class PseudoTree {
@@ -113,6 +114,32 @@ public class PseudoTree {
 		
 		if (vars.size() == 0) {
 			andNode.V = 1;
+		}
+	}
+	
+	public void initializeArcs() {
+		for (OrNode orNode : orNodes) {
+			// find the child of order
+			LinkedList<OrNode> below = new LinkedList<>();
+			// only need to traverse one And child, because all the And child are same
+			// in terms of structure
+			findOrNodesBelow(orNode, below);
+		}
+	}
+	
+	public void findOrNodesBelow(OrNode orNode, LinkedList<OrNode> below) {
+		// find the child of order
+		//LinkedList<Variable> below = new LinkedList<>();
+		// only need to traverse one And child, because all the And child are same
+		// in terms of structure
+		if(0 == orNode.children.size()) {
+			return;
+		}
+		
+		AndNode andNode = (AndNode) orNode.children.get(0);
+		for (TreeNode orNode2 : andNode.children) {
+			below.add((OrNode) orNode2);
+			findOrNodesBelow((OrNode) orNode2, below);
 		}
 	}
 }
