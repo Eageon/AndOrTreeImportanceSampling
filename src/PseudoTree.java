@@ -6,6 +6,7 @@ public class PseudoTree {
 	OrNode root;
 	GraphicalModel model;
 	ArrayList<OrNode> orNodes;
+	LinkedList<int[]> cachedSamples;
 	
 	public PseudoTree(GraphicalModel model) {
 		this.model = model;
@@ -125,6 +126,49 @@ public class PseudoTree {
 			// in terms of structure
 			findOrNodesBelow(orNode, below);
 		}
+	}
+	
+	public double postOrderTraverse() {
+		return 0.0;
+	}
+	
+	public double postOrderTraverse(OrNode orNode) {
+		// virtual And Node
+		//AndNode andNode = new AndNode(0);
+		//andNode.parent = orNode;
+		//andNode.children = orNode.children;
+		double vOr = 0.0;
+		int totalPresentSamples = 0;
+		int[] andNodePresentSamples = new int[orNode.nodeVariable.domainSize()];
+		for (int i = 0; i < orNode.nodeVariable.domainSize(); i++) {
+			for (int[] sampleVals : cachedSamples) {
+				if(sampleVals[orNode.nodeVariable.index] == i) {
+					// present sample;
+					totalPresentSamples++;
+					andNodePresentSamples[i]++;
+				}
+			}	
+		}
+		
+		if(totalPresentSamples == 0) {
+			return 0.0;
+		}
+		
+		for (int i = 0; i < orNode.nodeVariable.domainSize(); i++) {
+			// Simulating And node that is the child of orNode
+			orNode.value = i; 
+			// caculate w for xi
+			double w = 0.0;
+			double vAnd = 1.0;
+			for (int j = 0; j < orNode.children.size(); j++) {
+				OrNode secondOrNode = (OrNode) orNode.children.get(j);
+				vAnd *= postOrderTraverse(secondOrNode);
+			}
+			
+			vOr += (andNodePresentSamples[i] * w * vAnd) / totalPresentSamples;
+		}
+		
+		return vOr;
 	}
 	
 	public void findOrNodesBelow(OrNode orNode, LinkedList<OrNode> below) {

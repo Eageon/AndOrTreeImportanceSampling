@@ -7,6 +7,7 @@ public class OrNode extends TreeNode {
 	
 	Variable nodeVariable;
 	boolean alreadySplitted = false;
+	double value;  // for virtual use
 	
 	public OrNode(Variable var) {
 		nodeVariable = var;
