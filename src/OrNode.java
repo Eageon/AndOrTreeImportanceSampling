@@ -4,6 +4,7 @@ import java.util.ArrayList;
 public class OrNode extends TreeNode {
 	ArrayList<Double> arcWeight;
 	ArrayList<Integer> count;
+	ArrayList<Factor> cluster;
 	
 	Variable nodeVariable;
 	boolean alreadySplitted = false;

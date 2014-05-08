@@ -19,11 +19,16 @@ public class AndOrSampling {
 		}
 		UniformSampler Q = new UniformSampler(nonSoftEvidenceVariables);
 		Q.model = model;
+		Q.overallTopOrderToSampleTopOrder(model.topologicalOrder());
+		cachedSamples = new LinkedList<>();
 		
 		for (int i = 0; i < N; i++) {
 			Q.sample();
 			cachedSamples.add(Q.dumpSampleInclusive());
 		}
+		
+		PseudoTree pseudoTree = new PseudoTree(model);
+		root = pseudoTree.generatePseudoTree();
 		
 		return postOrderTraverse(root);
 	}
@@ -58,7 +63,8 @@ public class AndOrSampling {
 			// Simulating And node that is the child of orNode
 			orNode.value = i; 
 			// caculate w for xi
-			double w = 0.0;
+			
+			double w = underlyProduct(orNode) * orNode.nodeVariable.domainSize();
 			double vAnd = 1.0;
 			for (int j = 0; j < orNode.children.size(); j++) {
 				OrNode secondOrNode = (OrNode) orNode.children.get(j);
@@ -70,6 +76,15 @@ public class AndOrSampling {
 		
 		return vOr;
 	}
+	
+	public double underlyProduct(OrNode orNode) {
+		double product = 1.0;
+		for (Factor factor : orNode.cluster) {
+			product *= factor.underlyProbability();
+		}
+		
+		return product;
+	}
 
 	public static void usage() {
 		System.out.println("java  ImportanceSampling " + "FILENAME " + "w "
@@ -79,7 +94,7 @@ public class AndOrSampling {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		// TODO Auto-generated method stub
-		if (3 > args.length) {
+		if (2 > args.length) {
 			usage();
 			System.exit(0);
 		}
@@ -87,13 +102,13 @@ public class AndOrSampling {
 		String fileName = args[0];
 		int w = Integer.valueOf(args[1]);
 		int N = Integer.valueOf(args[2]);
-		boolean isAdaptive = (args[3].equals("adaptive")) ? true : false;
+		//boolean isAdaptive = (args[3].equals("adaptive")) ? true : false;
 
 		long startTime = System.currentTimeMillis();
 
 		try {
 			PrintStream writer = new PrintStream(fileName + ".output." + w
-					+ "." + N + "" + args[3]);
+					+ "." + N);
 			GraphicalModel model = new GraphicalModel(fileName);
 			writer.println("Network data loading completed: "
 					+ model.variables.size() + " variables, "
@@ -104,8 +119,8 @@ public class AndOrSampling {
 			writer.println("Evidence loaded, and variables instantiation completed. "
 					+ model.evidenceCount + " evidence");
 
-			ImportanceSampling sampling = new ImportanceSampling();
-			double result = sampling.startSampling(model, w, N, isAdaptive);
+			AndOrSampling sampling = new AndOrSampling();
+			double result = sampling.startSampling(model, w, N);
 
 			writer.println("Elimination completed");
 			writer.println("");

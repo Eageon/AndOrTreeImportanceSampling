@@ -17,6 +17,15 @@ public class PseudoTree {
 		ArrayList<ArrayList<Factor>> clusters = model.generateSoftClusters(softOrder);
 		ArrayList<Variable> order = model.orderIntToOrderVar(softOrder);
 		
+		// indice of empty clusters in order
+		ArrayList<Integer> emptyCluster = new ArrayList<>();
+		for (int i = 0; i < clusters.size(); i++) {
+			ArrayList<Factor> cluster = clusters.get(i);
+			if(0 == cluster.size()) {
+				emptyCluster.add(i);
+			}
+		}
+		
 		orNodes = new ArrayList<>(order.size());
 		for (Variable variable : order) {
 			orNodes.add(new OrNode(variable));
@@ -27,6 +36,7 @@ public class PseudoTree {
 			Variable thisVariable = order.get(i);
 			ArrayList<Factor> thisCluster = clusters.get(i);
 			OrNode thisOrNode = orNodes.get(i);
+			thisOrNode.cluster = thisCluster;
 			
 			ArrayList<Variable> tmpVars = new ArrayList<>();
 			for (Factor factor : thisCluster) {
@@ -52,6 +62,37 @@ public class PseudoTree {
 				}
 			}
 		}
+		
+		// replace the previously empty cluster with non-sumout factors
+		int prev = 0;
+		for (Integer emptyClusterIndex : emptyCluster) {
+			Variable respectVar = model.getVariable(softOrder.get(emptyClusterIndex));
+			OrNode respectOrNode = orNodes.get(softOrder.get(emptyClusterIndex));
+			respectOrNode.cluster.clear();
+			//ArrayList<Factor> newCluster = new ArrayList<>();
+			for (int i = prev; i <= emptyClusterIndex - 1; i++) {
+				ArrayList<Factor> clusterPrevInOrder = clusters.get(i);
+				ArrayList<Factor> newFactors = new ArrayList<>();
+				Variable toBeElminated = model.getVariable(softOrder.get(i));
+				boolean mentionEmpty = false;
+				for (Factor factor : clusterPrevInOrder) {
+					if(factor.inScope(respectVar)) {
+						mentionEmpty = true;
+						newFactors.add(factor);
+					}
+				}
+				if(!mentionEmpty) {
+					continue;
+				}
+				
+				Factor newFactor = Eliminator.Product(newFactors);
+				newFactor = Eliminator.SumOut(newFactor, toBeElminated);
+				respectOrNode.cluster.add(newFactor);
+			}
+			//clusters.set(emptyClusterIndex, newCluster);
+			prev = emptyClusterIndex;
+		}
+		
 		return root;
 	}
 	
