@@ -13,6 +13,8 @@ public class PseudoTree {
 	}
 	
 	public OrNode generatePseudoTree() {
+		model.clearEvidence();
+		model.resumeSoftEvidence();
 		ArrayList<Integer> softOrder = model.computeSoftOrder();
 		ArrayList<ArrayList<Factor>> clusters = model.generateSoftClusters(softOrder);
 		ArrayList<Variable> order = model.orderIntToOrderVar(softOrder);
@@ -56,6 +58,9 @@ public class PseudoTree {
 				ArrayList<Factor> thatCluster = clusters.get(j);
 				
 				if(newFactor.inScope(thatVariable)) {
+					if(j == order.size() - 1) {
+						System.out.println("got");
+					}
 					thatOrNode.addChildren(thisOrNode);
 					thatCluster.add(newFactor);
 					break;
