@@ -21,6 +21,9 @@ public class AndOrSampling {
 		Q.model = model;
 		Q.overallTopOrderToSampleTopOrder(model.topologicalOrder());
 		cachedSamples = new LinkedList<>();
+		if (model.network.equals("MARKOV")) {
+			Q.generateSamples();
+		}
 		
 		for (int i = 0; i < N; i++) {
 			Q.sample();
